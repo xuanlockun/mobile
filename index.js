@@ -6,9 +6,11 @@ const cors = require('cors');
 const app = express();
 const PORT = 3000;
 const SECRET_KEY = 'your_secret_key';
+const path = require('path');
 
 app.use(express.json());
 app.use(cors()); // Thêm dòng này để cho phép tất cả các nguồn truy cập
+app.use(express.static('public'));
 
 // 📦 Init SQLite
 const db = new sqlite3.Database('./users.db', (err) => {
@@ -51,7 +53,20 @@ function authenticateToken(req, res, next) {
     next();
   });
 }
-
+app.get('/', authenticateToken, (req, res) => {
+  // Get user details to check position
+  db.get('SELECT position FROM users WHERE id = ?', [req.user.id], (err, user) => {
+    if (err) return res.status(500).send('Server error');
+    if (!user) return res.redirect('/login.html');
+    
+    // Check if user is "Quản Lý"
+    if (user.position.toLowerCase() === 'quản lý') {
+      res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    } else {
+      res.redirect('/login.html');
+    }
+  });
+});
 // 🚪 POST /register
 app.post('/register', (req, res) => {
   const { full_name, phone_number, age, position } = req.body;
