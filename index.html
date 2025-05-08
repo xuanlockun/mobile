@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản lý Nhân viên</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Navbar Styles */
+    nav {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px;
+    }
+
+    nav ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    nav ul li {
+      margin: 0 15px;
+    }
+
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      padding: 5px 10px;
+    }
+
+    nav ul li a:hover {
+      background-color: #45a049;
+      border-radius: 5px;
+    }
+
+    /* Main container */
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 10px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    /* Style cho dropdown (select) */
+    select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+      font-size: 16px;
+      color: #333;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    select:hover {
+      background-color: #e2e2e2;
+    }
+
+    /* Tạo hiệu ứng cho option khi hover */
+    option {
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    option:hover {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .employee-list table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .employee-list th, .employee-list td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+
+    .employee-list th {
+      background-color: #f2f2f2;
+    }
+
+    /* Sửa lại layout của checkbox */
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .checkbox-group input {
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav>
+    <ul>
+      <li><a href="#home">Trang chủ</a></li>
+      <li><a href="#statistic">Thống kê</a></li>
+      <li><a href="#manage">Quản lý nhân viên</a></li>
+    </ul>
+  </nav>
+
+  <div class="container" id="manage">
+    <h1>Quản lý Nhân viên</h1>
+
+    <!-- Đăng ký nhân viên mới -->
+    <h2>Đăng ký nhân viên mới</h2>
+    <form id="registerForm">
+      <div class="form-group">
+        <label for="full_name">Họ và Tên:</label>
+        <input type="text" id="full_name" name="full_name" required>
+      </div>
+      <div class="form-group">
+        <label for="phone_number">Số điện thoại:</label>
+        <input type="text" id="phone_number" name="phone_number" required>
+      </div>
+      <div class="form-group">
+        <label for="age">Tuổi:</label>
+        <input type="number" id="age" name="age" required>
+      </div>
+      <div class="form-group">
+        <label for="position">Chức vụ:</label>
+        <select id="position" name="position" required>
+          <option value="">Chọn chức vụ</option>
+          <option value="Quản lý">Quản lý</option>
+          <option value="Phục vụ">Phục vụ</option>
+          <option value="Đầu bếp">Đầu bếp</option>
+          <option value="Nhân viên kho">Nhân viên kho</option>
+        </select>
+      </div>
+      
+      <!-- Thêm trường mật khẩu và checkbox để chọn mật khẩu mặc định -->
+      <div class="form-group">
+        <label for="password">Mật khẩu:</label>
+        <input type="password" id="password" name="password" required>
+      </div>
+
+      <div class="checkbox-group">
+        <input type="checkbox" id="defaultPassword">
+        <label for="defaultPassword">Sử dụng mật khẩu mặc định "Nhanvienuit123"</label>
+      </div>
+
+      <button type="submit">Đăng ký nhân viên</button>
+    </form>
+
+    <!-- Danh sách nhân viên -->
+    <div class="employee-list">
+      <h2>Danh sách nhân viên</h2>
+      <table id="employeeTable">
+        <thead>
+          <tr>
+            <th>Họ và Tên</th>
+            <th>Số điện thoại</th>
+            <th>Tuổi</th>
+            <th>Chức vụ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Dữ liệu nhân viên sẽ được chèn vào đây -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // Chuyển đổi giữa các phần trong Navbar
+    const navLinks = document.querySelectorAll('nav ul li a');
+    navLinks.forEach(link => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        const targetId = event.target.getAttribute('href').substring(1);
+        const sections = document.querySelectorAll('.container');
+        sections.forEach(section => {
+          section.style.display = section.id === targetId ? 'block' : 'none';
+        });
+      });
+    });
+
+    // Xử lý sự kiện thay đổi trạng thái checkbox
+    const defaultPasswordCheckbox = document.getElementById('defaultPassword');
+    const passwordField = document.getElementById('password');
+
+    // Function to toggle the password field based on checkbox
+    defaultPasswordCheckbox.addEventListener('change', function() {
+      if (this.checked) {
+        passwordField.disabled = true;  // Disable the password field
+        passwordField.value = 'Nhanvienuit123';  // Set the default password
+      } else {
+        passwordField.disabled = false;  // Enable the password field
+        passwordField.value = '';  // Clear the password field
+      }
+    });
+
+    // Fetch danh sách nhân viên và hiển thị
+    function fetchEmployeeList() {
+      fetch('http://160.191.175.184:3000/employees')
+        .then(response => response.json())
+        .then(data => {
+          const employeeTable = document.getElementById('employeeTable').getElementsByTagName('tbody')[0];
+          employeeTable.innerHTML = '';  // Xóa các hàng hiện tại
+
+          data.forEach(employee => {
+            const row = employeeTable.insertRow();
+            row.innerHTML = ` 
+              <td>${employee.full_name}</td>
+              <td>${employee.phone_number}</td>
+              <td>${employee.age}</td>
+              <td>${employee.position}</td>
+            `;
+          });
+        })
+        .catch(error => console.error('Lỗi khi lấy danh sách nhân viên:', error));
+    }
+
+    // Xử lý đăng ký nhân viên
+    document.getElementById('registerForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const fullName = document.getElementById('full_name').value;
+      const phoneNumber = document.getElementById('phone_number').value;
+      const age = document.getElementById('age').value;
+      const position = document.getElementById('position').value;
+      const defaultPasswordChecked = document.getElementById('defaultPassword').checked;
+      const password = defaultPasswordChecked ? 'Nhanvienuit123' : document.getElementById('password').value;
+
+      // Gửi dữ liệu đến backend để đăng ký nhân viên
+      fetch('http://160.191.175.184:3000/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          full_name: fullName,
+          phone_number: phoneNumber,
+          age: age,
+          position: position,
+          password: password,
+        }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert('Đăng ký nhân viên thành công');
+        fetchEmployeeList();  // Làm mới danh sách nhân viên
+        document.getElementById('registerForm').reset(); // Xóa form
+      })
+      .catch(error => console.error('Lỗi khi đăng ký nhân viên:', error));
+    });
+
+    // Load danh sách nhân viên khi trang được tải
+    fetchEmployeeList();
+  </script>
+
+</body>
+</html>
