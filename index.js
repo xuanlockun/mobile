@@ -85,7 +85,7 @@ app.get('/', (req, res) => {
 });
 // 🚪 POST /register
 app.post('/register', (req, res) => {
-  const { full_name, phone_number, age, position } = req.body;
+  const { full_name, phone_number, age, position,password } = req.body;
 
   if (!full_name || !phone_number || !age || !position) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -95,7 +95,7 @@ app.post('/register', (req, res) => {
     if (err) return res.status(500).json({ error: err.message });
     if (user) return res.status(400).json({ error: 'Phone number already registered' });
 
-    const hashedPassword = bcrypt.hashSync('Nhanvienuit123', 10);
+    const hashedPassword = bcrypt.hashSync(password, 10);
 
     db.run(
       'INSERT INTO users (full_name, phone_number, age, position, password) VALUES (?, ?, ?, ?, ?)',
