@@ -53,18 +53,34 @@ function authenticateToken(req, res, next) {
     next();
   });
 }
-app.get('/', authenticateToken, (req, res) => {
-  // Get user details to check position
-  db.get('SELECT position FROM users WHERE id = ?', [req.user.id], (err, user) => {
-    if (err) return res.status(500).send('Server error');
-    if (!user) return res.redirect('/login.html');
-    
-    // Check if user is "Quản Lý"
-    if (user.position.toLowerCase() === 'quản lý') {
-      res.sendFile(path.join(__dirname, 'public', 'index.html'));
-    } else {
-      res.redirect('/login.html');
+// Modified root route
+app.get('/', (req, res) => {
+  // Try to get token from Authorization header or query parameter
+  const token = req.headers.authorization?.split(' ')[1] || req.query.token;
+  
+  if (!token) {
+    return res.redirect('/login.html');
+  }
+
+  // Verify the token
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res.redirect('/login.html');
     }
+    
+    // Check user position
+    db.get('SELECT position FROM users WHERE id = ?', [decoded.id], (dbErr, user) => {
+      if (dbErr || !user) {
+        return res.redirect('/login.html');
+      }
+      
+      // Check if user is "Quản Lý" (case insensitive)
+      if (user.position.toLowerCase() === 'quản lý') {
+        res.sendFile(path.join(__dirname, 'public', 'index.html'));
+      } else {
+        res.redirect('/login.html');
+      }
+    });
   });
 });
 // 🚪 POST /register
