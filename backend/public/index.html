@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản lý Nhân viên</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success px-3">
+        <a class="navbar-brand" href="#">Quản lý</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item"><a class="nav-link" href="res.html">Trang chủ</a></li>
+                <li class="nav-item"><a class="nav-link" href="index.html">Quản lý nhân viên</a></li>
+                <li class="nav-item"><a class="nav-link" href="thongke.html">Thống kê</a></li>
+                <li class="nav-item"><a class="nav-link" href="kho.html">Quản lý kho</a></li>
+                <li class="nav-item"><a class="nav-link" href="themmon.html">Thêm món</a></li>
+            </ul>
+            <button class="btn btn-danger" id="logoutBtn">Đăng xuất</button>
+        </div>
+    </nav>
+
+  <div class="container my-4" id="contentArea">
+  </div>
+
+  <template id="loginTemplate">
+    <div class="container py-4">
+      <h1 class="mb-4">Đăng nhập hệ thống</h1>
+      <form id="loginForm">
+        <div class="mb-3">
+          <label for="loginPhone" class="form-label">Số điện thoại</label>
+          <input type="text" class="form-control" id="loginPhone" required>
+        </div>
+        <div class="mb-3">
+          <label for="loginPassword" class="form-label">Mật khẩu</label>
+          <input type="password" class="form-control" id="loginPassword" required>
+        </div>
+        <button type="submit" class="btn btn-success">Đăng nhập</button>
+        <div id="loginError" class="text-danger mt-2"></div>
+      </form>
+    </div>
+  </template>
+
+  <!-- Management Template -->
+  <template id="manageTemplate">
+    <div class="container py-4">
+      <h1 class="mb-4">Quản lý Nhân viên</h1>
+      <h2 class="mb-3">Đăng ký nhân viên mới</h2>
+      <form id="registerForm" class="row g-3">
+        <div class="col-md-6">
+          <label for="full_name" class="form-label">Họ và Tên</label>
+          <input type="text" class="form-control" id="full_name" required>
+        </div>
+        <div class="col-md-6">
+          <label for="phone_number" class="form-label">Số điện thoại</label>
+          <input type="text" class="form-control" id="phone_number" required>
+        </div>
+        <div class="col-md-6">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" class="form-control" id="email" required>
+        </div>
+        <div class="col-md-3">
+          <label for="age" class="form-label">Tuổi</label>
+          <input type="number" class="form-control" id="age" required>
+        </div>
+        <div class="col-md-3">
+          <label for="position" class="form-label">Chức vụ</label>
+          <select id="position" class="form-select" required>
+            <option value="">Chọn chức vụ</option>
+            <option value="Quản lý">Quản lý</option>
+            <option value="Phục vụ">Phục vụ</option>
+            <option value="Đầu bếp">Đầu bếp</option>
+            <option value="Nhân viên kho">Nhân viên kho</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label for="password" class="form-label">Mật khẩu</label>
+          <input type="password" class="form-control" id="password" required>
+        </div>
+        <div class="col-12 form-check ms-2">
+          <input class="form-check-input" type="checkbox" id="defaultPassword">
+          <label class="form-check-label" for="defaultPassword">Sử dụng mật khẩu mặc định "Nhanvienuit123"</label>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-primary">Đăng ký nhân viên</button>
+          <div id="registerMessage" class="mt-2"></div>
+        </div>
+      </form>
+
+      <!-- Employee Table -->
+      <div class="mt-5">
+        <h2 class="mb-3">Danh sách nhân viên</h2>
+        <table class="table table-striped table-bordered" id="employeeTable">
+          <thead class="table-light">
+            <tr>
+              <th>Họ và Tên</th>
+              <th>Số điện thoại</th>
+              <th>Email</th>
+              <th>Tuổi</th>
+              <th>Chức vụ</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Employee data will be inserted here -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Edit Modal -->
+      <div class="modal fade" id="editEmployeeModal" tabindex="-1" aria-labelledby="editEmployeeLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <form id="editEmployeeForm">
+              <div class="modal-header">
+                <h5 class="modal-title" id="editEmployeeLabel">Chỉnh sửa nhân viên</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <input type="hidden" id="edit-id" />
+                <div class="mb-3">
+                  <label class="form-label">Họ và Tên</label>
+                  <input type="text" class="form-control" id="edit-full-name" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Số điện thoại</label>
+                  <input type="text" class="form-control" id="edit-phone-number" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Email</label>
+                  <input type="email" class="form-control" id="edit-email" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Tuổi</label>
+                  <input type="number" class="form-control" id="edit-age" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Chức vụ</label>
+                  <input type="text" class="form-control" id="edit-position" required>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    // Global variables
+    let currentUser = null;
+    const API_BASE_URL = 'http://160.191.175.184:3000';
+    const contentArea = document.getElementById('contentArea');
+    const loginTemplate = document.getElementById('loginTemplate');
+    const manageTemplate = document.getElementById('manageTemplate');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const homeLink = document.getElementById('homeLink');
+    const manageLink = document.getElementById('manageLink');
+
+    // Initialize the application
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAuthentication();
+      setupEventListeners();
+    });
+
+    // Check if user is authenticated
+    function checkAuthentication() {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        showLoginPage();
+        return;
+      }
+
+      verifyToken(token);
+    }
+
+    // Verify token with server
+    function verifyToken(token) {
+      fetch(`${API_BASE_URL}/profile`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+        .then(response => {
+          if (response.ok) {
+            return response.json();
+          }
+          throw new Error('Token verification failed');
+        })
+        .then(data => {
+          currentUser = data.profile;
+          if (currentUser.position.toLowerCase() === 'quản lý') {
+            showManagementPage();
+          } else {
+            // If not manager, show login with message
+            showLoginPage('Chỉ quản lý mới có quyền truy cập');
+            localStorage.removeItem('token');
+          }
+        })
+        .catch(error => {
+          console.error('Token verification error:', error);
+          localStorage.removeItem('token');
+          showLoginPage();
+        });
+    }
+
+    // Show login page
+    function showLoginPage(message = '') {
+      const loginClone = loginTemplate.content.cloneNode(true);
+      contentArea.innerHTML = '';
+      contentArea.appendChild(loginClone);
+
+      if (message) {
+        document.getElementById('loginError').textContent = message;
+      }
+
+      // Setup login form
+      document.getElementById('loginForm').addEventListener('submit', handleLogin);
+    }
+
+    // Show management page
+    function showManagementPage() {
+      const manageClone = manageTemplate.content.cloneNode(true);
+      contentArea.innerHTML = '';
+      contentArea.appendChild(manageClone);
+
+      // Setup form and load employees
+      setupManagementPage();
+      fetchEmployeeList();
+    }
+
+    // Handle login form submission
+    function handleLogin(event) {
+      event.preventDefault();
+      const phone = document.getElementById('loginPhone').value;
+      const password = document.getElementById('loginPassword').value;
+      const errorElement = document.getElementById('loginError');
+
+      fetch(`${API_BASE_URL}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phone_number: phone,
+          password: password
+        })
+      })
+        .then(response => {
+          if (!response.ok) {
+            return response.json().then(err => { throw err; });
+          }
+          return response.json();
+        })
+        .then(data => {
+          localStorage.setItem('token', data.access_token);
+          checkAuthentication(); // Verify the token and load appropriate page
+        })
+        .catch(error => {
+          errorElement.textContent = error.error || 'Đăng nhập thất bại';
+        });
+    }
+
+    // Setup management page elements
+    function setupManagementPage() {
+      // Default password checkbox
+      const defaultPasswordCheckbox = document.getElementById('defaultPassword');
+      const passwordField = document.getElementById('password');
+
+      defaultPasswordCheckbox.addEventListener('change', function () {
+        if (this.checked) {
+          passwordField.disabled = true;
+          passwordField.value = 'Nhanvienuit123';
+        } else {
+          passwordField.disabled = false;
+          passwordField.value = '';
+        }
+      });
+
+      // Registration form
+      document.getElementById('registerForm').addEventListener('submit', handleEmployeeRegistration);
+      document.getElementById('editEmployeeForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const id = document.getElementById('edit-id').value;
+        const updatedEmployee = {
+          full_name: document.getElementById('edit-full-name').value,
+          phone_number: document.getElementById('edit-phone-number').value,
+          email: document.getElementById('edit-email').value,
+          age: document.getElementById('edit-age').value,
+          position: document.getElementById('edit-position').value,
+        };
+
+        fetch(`${API_BASE_URL}/employees/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify(updatedEmployee)
+        })
+          .then(res => {
+            if (!res.ok) throw new Error("Update failed");
+            return res.json();
+          })
+          .then(() => {
+            alert('Employee updated');
+            fetchEmployeeList(); // refresh table
+            bootstrap.Modal.getInstance(document.getElementById('editEmployeeModal')).hide();
+          })
+          .catch(err => {
+            console.error(err);
+            alert('Failed to update employee');
+          });
+      });
+
+    }
+
+    // Handle employee registration
+    function handleEmployeeRegistration(event) {
+      event.preventDefault();
+      const form = event.target;
+      const messageElement = document.getElementById('registerMessage');
+
+      const formData = {
+        full_name: form.full_name.value,
+        phone_number: form.phone_number.value,
+        email: form.email.value,
+        age: form.age.value,
+        position: form.position.value,
+        password: form.password.value
+      };
+
+      fetch(`${API_BASE_URL}/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(formData)
+      })
+        .then(response => {
+          if (!response.ok) {
+            return response.json().then(err => { throw err; });
+          }
+          return response.json();
+        })
+        .then(data => {
+          messageElement.textContent = 'Đăng ký nhân viên thành công';
+          messageElement.className = 'success-message';
+          form.reset();
+          fetchEmployeeList();
+        })
+        .catch(error => {
+          messageElement.textContent = error.error || 'Đăng ký thất bại';
+          messageElement.className = 'error-message';
+        });
+    }
+
+    // Fetch employee list
+    let currentEmployeeList = [];
+
+    function fetchEmployeeList() {
+      fetch(`${API_BASE_URL}/employees`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch employees');
+          }
+          return response.json();
+        })
+        .then(data => {
+          currentEmployeeList = data; // ✅ Gán dữ liệu vào biến toàn cục
+
+          const tableBody = document.querySelector('#employeeTable tbody');
+          tableBody.innerHTML = '';
+
+          data.forEach(employee => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+          <td>${employee.full_name}</td>
+          <td>${employee.phone_number}</td>
+          <td>${employee.email}</td>
+          <td>${employee.age}</td>
+          <td>${employee.position}</td>
+          <td>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-primary" onclick="editEmployee(${employee.id})">Edit</button>
+              <button class="btn btn-danger" onclick="deleteEmployee(${employee.id})">Delete</button>
+            </div>
+          </td>
+        `;
+            tableBody.appendChild(row);
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching employees:', error);
+        });
+    }
+
+    function deleteEmployee(id) {
+      if (!confirm('Are you sure you want to delete this employee?')) return;
+
+      fetch(`${API_BASE_URL}/employees/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+        .then(response => {
+          if (!response.ok) throw new Error('Failed to delete employee');
+          alert('Employee deleted');
+          fetchEmployeeList(); // refresh list
+        })
+        .catch(error => {
+          console.error('Error deleting employee:', error);
+        });
+    }
+    function editEmployee(id) {
+      const employee = currentEmployeeList.find(emp => emp.id === id);
+      if (!employee) return alert("Employee not found");
+
+      // Populate form
+      document.getElementById('edit-id').value = employee.id;
+      document.getElementById('edit-full-name').value = employee.full_name;
+      document.getElementById('edit-phone-number').value = employee.phone_number;
+      document.getElementById('edit-email').value = employee.email;
+      document.getElementById('edit-age').value = employee.age;
+      document.getElementById('edit-position').value = employee.position;
+
+      // Show modal
+      const modal = new bootstrap.Modal(document.getElementById('editEmployeeModal'));
+      modal.show();
+    }
+
+
+    // Setup event listeners
+    function setupEventListeners() {
+      // Logout button
+      logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('token');
+        showLoginPage();
+      });
+
+      // Navigation links
+      homeLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (currentUser) {
+          showManagementPage();
+        }
+      });
+
+      manageLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (currentUser) {
+          showManagementPage();
+        }
+      });
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>

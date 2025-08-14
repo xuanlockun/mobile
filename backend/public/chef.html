@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Trang Đầu Bếp</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    .nav { margin-bottom: 20px; }
+    .nav a { margin-right: 15px; text-decoration: none; color: #0066cc; font-weight: bold; }
+    
+    .chef-container {
+      display: flex;
+      gap: 20px;
+    }
+    
+    .order-queue, .kitchen-inventory {
+      flex: 1;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+    
+    th {
+      background-color: #f2f2f2;
+    }
+    
+    .order-row {
+      cursor: pointer;
+    }
+    
+    .order-row:hover {
+      background-color: #f9f9f9;
+    }
+    
+    .chờ_nấu {
+      background-color: #fff0e0;
+    }
+    
+    .đã_nấu_xong {
+      background-color: #e0ffe0;
+    }
+    
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    button:hover {
+      background-color: #45a049;
+    }
+    
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    
+    h2 {
+      color: #333;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="nav">
+    <a href="/">Trang chính</a>
+    <a href="/chef.html">Trang đầu bếp</a>
+  </div>
+
+  <h1>Bếp - Quản lý hàng đợi</h1>
+  
+  <div class="chef-container">
+    <div class="order-queue">
+      <h2>Hàng đợi món</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Bàn</th>
+            <th>Món</th>
+            <th>Thời gian đặt</th>
+            <th>Trạng thái</th>
+            <th>Hành động</th>
+          </tr>
+        </thead>
+        <tbody id="orderQueueTable"></tbody>
+      </table>
+    </div>
+    
+    <div class="kitchen-inventory">
+      <h2>Kho nguyên liệu</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nguyên liệu</th>
+            <th>Số lượng</th>
+          </tr>
+        </thead>
+        <tbody id="khoTable"></tbody>
+      </table>
+      
+      <h2>Thông tin công thức</h2>
+      <div id="recipeInfo">
+        <p>Chọn món trong hàng đợi để xem công thức</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const socket = io();
+    let selectedOrderId = null;
+    
+    // Hiển thị kho nguyên liệu
+    socket.on('update_kho', (kho) => {
+      const tbody = document.getElementById('khoTable');
+      tbody.innerHTML = kho.map(row => `
+        <tr>
+          <td>${row.ten_nguyen_lieu}</td>
+          <td>${row.so_luong}g</td>
+        </tr>`).join('');
+    });
+    
+    // Hiển thị hàng đợi món
+    socket.on('update_queue', (queue) => {
+      const tbody = document.getElementById('orderQueueTable');
+      tbody.innerHTML = queue.map(order => {
+        const orderTime = new Date(order.thoi_gian_dat).toLocaleTimeString();
+        const statusClass = order.trang_thai.replace(/\s/g, '_');
+        const isWaiting = order.trang_thai === 'chờ nấu';
+        
+        return `
+          <tr class="order-row ${statusClass}" onclick="selectOrder(${order.id}, '${order.ten_mon}')">
+            <td>${order.id}</td>
+            <td>${order.ten_ban}</td>
+            <td>${order.ten_mon}</td>
+            <td>${orderTime}</td>
+            <td>${order.trang_thai}</td>
+            <td>
+              <button 
+                onclick="completeOrder(${order.id})" 
+                ${isWaiting ? '' : 'disabled'}>
+                ${isWaiting ? 'Nấu xong' : 'Đã hoàn thành'}
+              </button>
+            </td>
+          </tr>`;
+      }).join('');
+    });
+    
+    // Chọn một đơn hàng để xem công thức
+    function selectOrder(id, tenMon) {
+      selectedOrderId = id;
+      
+      // Lấy thông tin công thức cho món đã chọn
+      fetch('/mon-an')
+        .then(res => res.json())
+        .then(dishes => {
+          const dish = dishes.find(d => d.ten_mon === tenMon);
+          if (dish) {
+            getRecipe(dish.id, tenMon);
+          }
+        });
+    }
+    
+    // Lấy thông tin công thức
+    function getRecipe(monId, tenMon) {
+      fetch(`/mon-an`)
+        .then(res => res.json())
+        .then(dishes => {
+          // Tìm công thức dựa vào ID món
+          const recipe = [];
+          
+          // Hiển thị thông tin công thức
+          const recipeDiv = document.getElementById('recipeInfo');
+          recipeDiv.innerHTML = `
+            <h3>Công thức: ${tenMon}</h3>
+            <p>Đang tải công thức...</p>
+          `;
+          
+          // Trong thực tế, bạn có thể tạo API riêng để lấy công thức
+          // Đây là giả lập hiển thị
+          setTimeout(() => {
+            recipeDiv.innerHTML = `
+              <h3>Công thức: ${tenMon}</h3>
+              <p>ID Món: ${monId}</p>
+              <ul>
+                <li>Các bước chuẩn bị:</li>
+                <li>1. Chuẩn bị nguyên liệu</li>
+                <li>2. Chế biến theo quy trình</li>
+                <li>3. Trang trí và hoàn thiện</li>
+              </ul>
+              <p>Thời gian chế biến: khoảng 15 phút</p>
+            `;
+          }, 500);
+        });
+    }
+    
+    // Hoàn thành món ăn
+    function completeOrder(id) {
+      fetch('/nau-xong', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      })
+        .then(res => {
+          if (!res.ok) {
+            return res.text().then(text => { throw new Error(text) });
+          }
+          return res.text();
+        })
+        .then(msg => {
+          alert(msg);
+        })
+        .catch(err => {
+          alert('Lỗi: ' + err.message);
+        });
+    }
+  </script>
+</body>
+</html>

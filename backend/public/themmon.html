@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thêm Món Mới - Quản Lý Nhà Hàng</title>
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #fff;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .recipe-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .recipe-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .recipe-header h3 {
+            color: #333;
+            font-size: 1.3rem;
+        }
+
+        .ingredient-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .ingredient-item {
+            display: grid;
+            grid-template-columns: 1fr 150px 60px;
+            gap: 15px;
+            align-items: center;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .ingredient-select {
+            padding: 10px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 1rem;
+            background: white;
+        }
+
+        .ingredient-quantity {
+            padding: 10px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2rem;
+            margin-top: 20px;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .inventory-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .inventory-item {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            border-left: 4px solid #2196f3;
+        }
+
+        @media (max-width: 768px) {
+            .ingredient-item {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-success px-3">
+        <a class="navbar-brand" href="#">Quản lý</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item"><a class="nav-link" href="res.html">Trang chủ</a></li>
+                <li class="nav-item"><a class="nav-link" href="index.html">Quản lý nhân viên</a></li>
+                <li class="nav-item"><a class="nav-link" href="thongke.html">Thống kê</a></li>
+                <li class="nav-item"><a class="nav-link" href="kho.html">Quản lý kho</a></li>
+                <li class="nav-item"><a class="nav-link" href="themmon.html">Thêm món</a></li>
+            </ul>
+            <button class="btn btn-danger" id="logoutBtn">Đăng xuất</button>
+        </div>
+    </nav>
+    <div class="container my-4">
+        <div class="header">
+            <h1>🍽️ Thêm Món Mới</h1>
+            <p>Tạo món ăn mới và thiết lập công thức nấu ăn</p>
+        </div>
+
+        <div class="form-container">
+            <div id="alerts"></div>
+
+            <div class="inventory-info">
+                <h4>📦 Nguyên liệu có sẵn trong kho:</h4>
+                <div id="inventory-list" class="inventory-grid">
+                    <div class="loading">Đang tải danh sách nguyên liệu...</div>
+                </div>
+            </div>
+
+            <form id="add-dish-form">
+                <div class="form-group">
+                    <label for="dish-name">Tên món ăn *</label>
+                    <input type="text" id="dish-name" class="form-control" placeholder="Ví dụ: Phở Đặc Biệt" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="dish-price">Giá bán (VNĐ) *</label>
+                    <input type="number" id="dish-price" class="form-control" placeholder="50000" min="1000" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="dish-image">Hình ảnh (URL)</label>
+                    <input type="url" id="dish-image" class="form-control" placeholder="https://example.com/image.jpg">
+                </div>
+
+                <div class="recipe-section">
+                    <div class="recipe-header">
+                        <h3>🧑‍🍳 Công thức nấu ăn</h3>
+                        <button type="button" class="btn btn-secondary" onclick="addIngredient()">+ Thêm nguyên liệu</button>
+                    </div>
+                    
+                    <div id="ingredients-container" class="ingredient-list">
+                        <div class="ingredient-item">
+                            <select class="ingredient-select" required>
+                                <option value="">Chọn nguyên liệu...</option>
+                            </select>
+                            <input type="number" class="ingredient-quantity" placeholder="Số lượng" min="1" required>
+                            <button type="button" class="btn btn-danger" onclick="removeIngredient(this)">❌</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success">🍽️ Thêm Món Mới</button>
+            </form>
+
+            <div id="loading" class="loading">
+                <p>Đang thêm món mới...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ingredients = [];
+        let token = localStorage.getItem('token');
+
+        // Kiểm tra token
+        if (!token) {
+            alert('Vui lòng đăng nhập trước!');
+            window.location.href = '/login.html';
+        }
+
+        // Tải danh sách nguyên liệu
+        async function loadIngredients() {
+            try {
+                const response = await fetch('http://160.191.175.184:3000/restaurant/kho/nguyen-lieu', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    ingredients = await response.json();
+                    updateInventoryDisplay();
+                    updateIngredientSelects();
+                } else {
+                    showAlert('Không thể tải danh sách nguyên liệu', 'danger');
+                }
+            } catch (error) {
+                showAlert('Lỗi kết nối: ' + error.message, 'danger');
+            }
+        }
+
+        // Hiển thị danh sách nguyên liệu trong kho
+        function updateInventoryDisplay() {
+            const inventoryList = document.getElementById('inventory-list');
+            inventoryList.innerHTML = ingredients.map(item => `
+                <div class="inventory-item">
+                    <strong>${item.ten_nguyen_lieu}</strong><br>
+                    <span style="color: #666;">Tồn kho: ${item.so_luong}</span>
+                </div>
+            `).join('');
+        }
+
+        // Cập nhật dropdown nguyên liệu
+        function updateIngredientSelects() {
+            const selects = document.querySelectorAll('.ingredient-select');
+            selects.forEach(select => {
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">Chọn nguyên liệu...</option>' +
+                    ingredients.map(item => 
+                        `<option value="${item.ten_nguyen_lieu}" ${currentValue === item.ten_nguyen_lieu ? 'selected' : ''}>
+                            ${item.ten_nguyen_lieu} (Tồn: ${item.so_luong})
+                        </option>`
+                    ).join('');
+            });
+        }
+
+        // Thêm nguyên liệu mới
+        function addIngredient() {
+            const container = document.getElementById('ingredients-container');
+            const newItem = document.createElement('div');
+            newItem.className = 'ingredient-item';
+            newItem.innerHTML = `
+                <select class="ingredient-select" required>
+                    <option value="">Chọn nguyên liệu...</option>
+                    ${ingredients.map(item => 
+                        `<option value="${item.ten_nguyen_lieu}">
+                            ${item.ten_nguyen_lieu} (Tồn: ${item.so_luong})
+                        </option>`
+                    ).join('')}
+                </select>
+                <input type="number" class="ingredient-quantity" placeholder="Số lượng" min="1" required>
+                <button type="button" class="btn btn-danger" onclick="removeIngredient(this)">❌</button>
+            `;
+            container.appendChild(newItem);
+        }
+
+        // Xóa nguyên liệu
+        function removeIngredient(button) {
+            const container = document.getElementById('ingredients-container');
+            if (container.children.length > 1) {
+                button.parentElement.remove();
+            } else {
+                showAlert('Phải có ít nhất một nguyên liệu', 'danger');
+            }
+        }
+
+        // Hiển thị thông báo
+        function showAlert(message, type) {
+            const alertsContainer = document.getElementById('alerts');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alertsContainer.appendChild(alert);
+
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // Xử lý form submit
+        document.getElementById('add-dish-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('dish-name').value.trim();
+            const price = parseInt(document.getElementById('dish-price').value);
+            const image = document.getElementById('dish-image').value.trim();
+
+            // Lấy công thức
+            const ingredientItems = document.querySelectorAll('.ingredient-item');
+            const recipe = [];
+
+            for (let item of ingredientItems) {
+                const select = item.querySelector('.ingredient-select');
+                const quantity = item.querySelector('.ingredient-quantity');
+                
+                if (!select.value || !quantity.value) {
+                    showAlert('Vui lòng điền đầy đủ thông tin công thức', 'danger');
+                    return;
+                }
+
+                recipe.push({
+                    nguyen_lieu: select.value,
+                    so_luong: parseInt(quantity.value)
+                });
+            }
+
+            // Kiểm tra trùng lặp nguyên liệu
+            const uniqueIngredients = new Set(recipe.map(r => r.nguyen_lieu));
+            if (uniqueIngredients.size !== recipe.length) {
+                showAlert('Không được chọn trùng nguyên liệu', 'danger');
+                return;
+            }
+
+            // Gửi dữ liệu
+            const loadingDiv = document.getElementById('loading');
+            loadingDiv.classList.add('show');
+
+            try {
+                const response = await fetch('http://160.191.175.184:3000/restaurant/mon-an/them-moi', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        ten_mon: name,
+                        gia: price,
+                        anh: image || null,
+                        cong_thuc: recipe
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showAlert(`✅ ${result.message}`, 'success');
+                    document.getElementById('add-dish-form').reset();
+                    
+                    // Reset về 1 nguyên liệu
+                    const container = document.getElementById('ingredients-container');
+                    container.innerHTML = `
+                        <div class="ingredient-item">
+                            <select class="ingredient-select" required>
+                                <option value="">Chọn nguyên liệu...</option>
+                            </select>
+                            <input type="number" class="ingredient-quantity" placeholder="Số lượng" min="1" required>
+                            <button type="button" class="btn btn-danger" onclick="removeIngredient(this)">❌</button>
+                        </div>
+                    `;
+                    updateIngredientSelects();
+                } else {
+                    showAlert(`❌ Lỗi: ${result.error}`, 'danger');
+                }
+            } catch (error) {
+                showAlert(`❌ Lỗi kết nối: ${error.message}`, 'danger');
+            } finally {
+                loadingDiv.classList.remove('show');
+            }
+        });
+
+        // Khởi tạo
+        loadIngredients();
+    </script>
+</body>
+</html>

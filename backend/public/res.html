@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Quản lý bàn & kho</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success px-3">
+        <a class="navbar-brand" href="#">Quản lý</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item"><a class="nav-link" href="res.html">Trang chủ</a></li>
+                <li class="nav-item"><a class="nav-link" href="index.html">Quản lý nhân viên</a></li>
+                <li class="nav-item"><a class="nav-link" href="thongke.html">Thống kê</a></li>
+                <li class="nav-item"><a class="nav-link" href="kho.html">Quản lý kho</a></li>
+                <li class="nav-item"><a class="nav-link" href="themmon.html">Thêm món</a></li>
+            </ul>
+            <button class="btn btn-danger" id="logoutBtn">Đăng xuất</button>
+        </div>
+    </nav>
+
+  <div class="container my-4">
+    <div class="row gy-4">
+      <div class="col-12 col-lg-6">
+        <h3>Trạng thái bàn</h3>
+        <div id="tableList" class="mb-4"></div>
+
+        <div class="action-buttons">
+          <h3>Hành động cho <span id="selectedTable">--</span></h3>
+          <button class="btn btn-success me-2 mb-2" onclick="thanhToan()" id="btnThanhToan" disabled>Thanh toán</button>
+          <button class="btn btn-info me-2 mb-2" onclick="xemChiTietHoaDon()">Xem chi tiết hóa đơn</button>
+          <button class="btn btn-secondary mb-2" onclick="inHoaDon()">In hóa đơn</button>
+          <div id="hoaDonChiTiet" class="mt-3"></div>
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-6">
+        <h3>Hàng đợi món</h3>
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Bàn</th>
+                <th>Món</th>
+                <th>Thời gian</th>
+                <th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody id="queueTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <h3>Kho nguyên liệu</h3>
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Nguyên liệu</th>
+                <th>Số lượng</th>
+              </tr>
+            </thead>
+            <tbody id="khoTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const socket = io();
+    let currentTable = null;
+    let currentTableStatus = null;
+    const token = localStorage.getItem('token');
+
+    socket.on('init_status', tables => {
+      document.getElementById('tableList').innerHTML = '';
+      tables.forEach(updateBan);
+    });
+
+    socket.on('update_status', ban => {
+      updateBan(ban);
+      if (currentTable === ban.ten_ban) {
+        currentTableStatus = ban.trang_thai;
+        updateTableActions();
+      }
+    });
+
+    function updateBan(ban) {
+      const id = ban.ten_ban;
+      let div = document.getElementById(id);
+
+      let bootstrapClass = '';
+      switch (ban.trang_thai.toLowerCase()) {
+        case 'trống': bootstrapClass = 'bg-success text-white p-2 rounded mb-2'; break;
+        case 'đã đặt món': bootstrapClass = 'bg-warning text-dark p-2 rounded mb-2'; break;
+        case 'đã phục vụ chưa thanh toán': bootstrapClass = 'bg-danger text-white p-2 rounded mb-2'; break;
+        default: bootstrapClass = 'bg-secondary text-white p-2 rounded mb-2';
+      }
+
+      if (!div) {
+        div = document.createElement('div');
+        div.id = id;
+        div.className = bootstrapClass;
+        div.textContent = `${ban.ten_ban} - ${ban.trang_thai}`;
+        div.style.cursor = 'pointer';
+        div.onclick = () => selectTable(ban.ten_ban, ban.trang_thai);
+        document.getElementById('tableList').appendChild(div);
+      } else {
+        div.className = bootstrapClass;
+        div.textContent = `${ban.ten_ban} - ${ban.trang_thai}`;
+      }
+    }
+
+    function selectTable(tenBan, trangThai) {
+      currentTable = tenBan;
+      currentTableStatus = trangThai;
+      document.getElementById('selectedTable').textContent = tenBan;
+      document.getElementById('orderTable').textContent = tenBan;
+      updateTableActions();
+    }
+
+    function updateTableActions() {
+      document.getElementById('btnThanhToan').disabled = currentTableStatus !== 'đã phục vụ chưa thanh toán';
+    }
+
+    function datMon() {
+      if (!currentTable) return alert('Chọn bàn trước!');
+      document.getElementById('orderTable').textContent = currentTable;
+    }
+
+
+    function thanhToan() {
+      if (!currentTable || currentTableStatus !== 'đã phục vụ chưa thanh toán') {
+        return alert(`Bàn ${currentTable} chưa sẵn sàng để thanh toán!`);
+      }
+
+      fetch('/restaurant/thanh-toan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ ten_ban: currentTable })
+      })
+        .then(res => res.ok ? res.text() : res.text().then(text => { throw new Error(text) }))
+        .then(msg => alert(msg))
+        .catch(err => alert('Lỗi: ' + err.message));
+    }
+
+    function xemChiTietHoaDon() {
+      if (!currentTable) return alert('Chọn bàn trước!');
+
+      fetch('/restaurant/hoa-don', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+        .then(res => res.json())
+        .then(hoaDons => {
+          const hoaDon = hoaDons.find(hd => hd.ten_ban === currentTable);
+          if (!hoaDon) {
+            document.getElementById('hoaDonChiTiet').innerHTML = `<p>Không tìm thấy hóa đơn cho ${currentTable}</p>`;
+            return;
+          }
+          const html = `
+            <h5>Hóa đơn cho ${hoaDon.ten_ban}</h5>
+            <ul>
+              ${hoaDon.danh_sach_mon.map(mon => `<li>${mon.ten_mon} - SL: ${mon.so_luong}, Giá: ${mon.gia}đ, Thành tiền: ${mon.thanh_tien}đ</li>`).join('')}
+            </ul>
+            <strong>Tổng tiền: ${hoaDon.tong_tien}đ</strong>
+          `;
+          document.getElementById('hoaDonChiTiet').innerHTML = html;
+        })
+        .catch(err => document.getElementById('hoaDonChiTiet').innerHTML = `<p class="text-danger">Lỗi: ${err.message}</p>`);
+    }
+
+    function inHoaDon() {
+      if (!currentTable) return alert('Chọn bàn trước!');
+      const content = document.getElementById('hoaDonChiTiet').innerHTML;
+      if (!content) return alert('Bạn cần xem chi tiết hóa đơn trước khi in!');
+
+      const printWindow = window.open('', '', 'width=600,height=800');
+      printWindow.document.write(`
+        <html><head><title>Hóa đơn ${currentTable}</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        </head><body class="p-3">${content}</body></html>`);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+    }
+
+    socket.on('update_kho', kho => {
+      const tbody = document.getElementById('khoTable');
+      tbody.innerHTML = kho.map(row => `<tr><td>${row.ten_nguyen_lieu}</td><td>${row.so_luong}g</td></tr>`).join('');
+    });
+
+    socket.on('update_queue', queue => {
+      const tbody = document.getElementById('queueTable');
+      tbody.innerHTML = queue.map(order => `
+        <tr>
+          <td>${order.ten_ban}</td>
+          <td>${order.ten_mon}</td>
+          <td>${new Date(order.thoi_gian_dat).toLocaleTimeString()}</td>
+          <td>${order.trang_thai}</td>
+        </tr>`).join('');
+    });
+  </script>
+</body>
+
+</html>
